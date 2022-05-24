@@ -5,6 +5,13 @@ import Header from '../components/Header'
 import Row from '../components/Row'
 import { Movie } from '../typings'
 import requests from '../utils/requests'
+import {useRecoilValue} from "recoil"
+import useAuth from '../hooks/useAuth'
+import { modalState } from '../atoms/modalAtom'
+import Modal from '../components/Modal'
+
+
+
 
 interface Props {
   netflixOriginals: Movie[]
@@ -27,17 +34,21 @@ const Home = ({
   topRated,
   trendingNow,
 }: Props) => {
+
+  const {loading} = useAuth()
+  const showModal = useRecoilValue(modalState)
+
   return (
-    <div className="relative h-screen bg-gradient-to-b lg:h-[140vh]">
+    <div className={`relative h-screen bg-gradient-to-b lg:h-[140vh] ${showModal && "!h-screen overflow-hidden"}`}>
       <Head>
         <title>Home - Netflix - Clone</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
       <main className="relaive pl-4 pb-24 lg:space-y-24 lg:pl-16">
-        <Banner netflixOriginals={netflixOriginals}  />
+        <Banner netflixOriginals={trendingNow}  />
         <section className="md:space-y-24" >
-        <Row  title="Trending Now" movies={trendingNow}/>
+        <Row  title="Trending Now" movies={netflixOriginals}/>
         <Row  title="Top Rated" movies={topRated}/>
         <Row  title="Action Thrillers" movies={actionMovies}/>
         <Row  title="Scary Movies" movies={horrorMovies}/>
@@ -46,7 +57,10 @@ const Home = ({
         <Row  title="Documentaries" movies={documentaries}/>
         </section>
       </main>
+      {showModal && <Modal /> }
+      
     </div>
+    
   )
 }
 
@@ -63,7 +77,7 @@ export const getServerSideProps = async () => {
     romanceMovies,
     documentaries,
   ] = await Promise.all([
-    fetch(requests.fetchNetflixOriginals).then((res) => res.json()),
+    fetch(requests.fetchNetflixOriginals).then(res => res.json()),
     fetch(requests.fetchTrending).then((res) => res.json()),
     fetch(requests.fetchTopRated).then((res) => res.json()),
     fetch(requests.fetchActionMovies).then((res) => res.json()),
